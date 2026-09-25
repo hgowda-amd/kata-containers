@@ -27,6 +27,9 @@ type qemuAmd64 struct {
 
 	snpGuest bool
 
+	// snpCPUModel is the SEV-SNP guest CPU model to pass to QEMU
+	snpCPUModel string
+
 	vmFactory bool
 
 	devLoadersCount uint32
@@ -134,6 +137,7 @@ func newQemuArch(config HypervisorConfig) (qemuArch, error) {
 		},
 		vmFactory:      factory,
 		snpGuest:       config.SevSnpGuest,
+		snpCPUModel:    config.CPUModel,
 		qgsPort:        config.QgsPort,
 		snpIdBlock:     config.SnpIdBlock,
 		snpIdAuth:      config.SnpIdAuth,
@@ -242,7 +246,7 @@ func (q *qemuAmd64) cpuModel() string {
 	protection, err := availableGuestProtection()
 	if err == nil {
 		if protection == snpProtection && q.snpGuest {
-			cpuModel = "EPYC-v4"
+			cpuModel = q.snpCPUModel
 		}
 	}
 

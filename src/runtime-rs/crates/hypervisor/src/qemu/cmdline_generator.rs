@@ -3514,7 +3514,7 @@ impl<'a> QemuCmdLine<'a> {
             .set_confidential_guest_support("snp")
             .set_nvdimm(false);
 
-        self.cpu.set_type("EPYC-v4");
+        self.cpu.set_type(&self.config.cpu_info.cpu_model);
     }
 
     pub fn add_tdx_protection_device(
@@ -4342,6 +4342,41 @@ mod tests {
             .collect();
 
         assert_eq!(values, expected_values);
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn test_sev_snp_cpu_model_from_config() {
+        let mut config = test_qemu_config(Some("none"), false);
+        config.cpu_info.cpu_model = "EPYC-Milan".to_owned();
+        let _ = std::fs::remove_file(QMP_SOCKET_FILE);
+        let mut cmdline = QemuCmdLine::new("sev-snp-cpu-model", &config).unwrap();
+        cmdline.add_sev_snp_protection_device(1, 1, "/usr/share/ovmf/OVMF.fd", &None);
+        let params = cmdline.build().await.unwrap();
+        let _ = std::fs::remove_file(QMP_SOCKET_FILE);
+
+        assert!(params.windows(2).any(|args| {
+            args[0] == "-cpu" && args[1].split(',').next() == Some("EPYC-Milan")
+        }));
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn test_sev_snp_cpu_model_defaults_to_epyc_milan() {
+        // cpu_model defaulting happens at config-load time via
+        // `CpuInfo::adjust_config()`, not in the cmdline generator, so
+        // exercise that same normalization here before building the cmdline.
+        let mut config = test_qemu_config(Some("none"), false);
+        config.cpu_info.adjust_config().unwrap();
+        let _ = std::fs::remove_file(QMP_SOCKET_FILE);
+        let mut cmdline = QemuCmdLine::new("sev-snp-cpu-model-default", &config).unwrap();
+        cmdline.add_sev_snp_protection_device(1, 1, "/usr/share/ovmf/OVMF.fd", &None);
+        let params = cmdline.build().await.unwrap();
+        let _ = std::fs::remove_file(QMP_SOCKET_FILE);
+
+        assert!(params.windows(2).any(|args| {
+            args[0] == "-cpu" && args[1].split(',').next() == Some("EPYC-Milan")
+        }));
     }
 
     #[actix_rt::test]

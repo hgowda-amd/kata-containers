@@ -53,6 +53,7 @@ var defaultFirmwarePath = ""
 var defaultFirmwareVolumePath = ""
 var defaultMachineAccelerators = ""
 var defaultCPUFeatures = ""
+var defaultCPUModel = "@DEFAULTCPUMODEL@"
 var systemdUnitName = "kata-containers.target"
 
 const defaultKernelParams = ""

@@ -190,6 +190,7 @@ func createAllRuntimeConfigFiles(dir, hypervisor string) (testConfig testRuntime
 		PFlash:                []string{},
 		SGXEPCSize:            epcSize,
 		MeasurementAlgo:       defaultMeasurementAlgo,
+		CPUModel:              defaultCPUModel,
 	}
 
 	if goruntime.GOARCH == "arm64" && len(hypervisorConfig.PFlash) == 0 && hypervisorConfig.FirmwarePath == "" {
@@ -580,6 +581,7 @@ func TestMinimalRuntimeConfig(t *testing.T) {
 		ColdPlugVFIO:          defaultColdPlugVFIO,
 		PCIeRootPort:          defaultPCIeRootPort,
 		PCIeSwitchPort:        defaultPCIeSwitchPort,
+		CPUModel:              defaultCPUModel,
 	}
 
 	expectedAgentConfig := vc.KataAgentConfig{
